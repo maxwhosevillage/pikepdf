@@ -37,7 +37,8 @@ exclude = '''
 [tool.cibuildwheel]
 test-command = "pytest -nauto {project}/tests"
 test-extras = "test"
-skip = "cp36-*"
+#skip = "cp36-*"
+skip = "cp36-* cp37-* cp38-* cp310-*"
 test-skip = "*_arm64 *_universal2:arm64"
 
 [tool.cibuildwheel.environment]
@@ -49,7 +50,7 @@ ZLIB_RELEASE = "https://www.zlib.net/zlib-1.2.11.tar.gz"
 
 [tool.cibuildwheel.linux]
 before-all = [
-  "yum install -y wget libxml2-devel libxslt-devel",
+  "yum install -y wget libxml2-devel libxslt-devel ccache",
   "bash build-scripts/linux-install-libxmp.bash",
   "bash build-scripts/linux-download-qpdf-deps.bash",
   "bash build-scripts/linux-download-qpdf.bash $QPDF_VERSION",
@@ -70,6 +71,10 @@ select = "*-musllinux*"
 before-all = [
   "apk add py3-lxml py3-pillow python3 py3-setuptools py3-pybind11-dev python3-dev py3-wheel qpdf-dev exempi-dev"
 ]
+
+[[tool.cibuildwheel.overrides]]
+select = "*-manylinux_aarch64"
+test-command = "pytest -nauto {project}/tests/test_sanity.py"
 
 [tool.cibuildwheel.macos]
 before-all = ["brew update", "brew install qpdf little-cms2"]
