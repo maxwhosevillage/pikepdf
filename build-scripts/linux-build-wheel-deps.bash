@@ -1,31 +1,37 @@
 #!/bin/bash
 set -ex
 
-
-export CCACHE_DIR=$(pwd)/build-ccache
-mkdir -p $CCACHE_DIR
+if [ -f ./build-cache/usr-local.tgz ]; then
+    HERE=$(pwd)
+    pushd /
+    tar --extract -z -f $HERE/build-cache/usr-local.tgz
+    popd
+fi
 
 if [ ! -f /usr/local/lib/libz.a ]; then
     pushd zlib
-    ./configure CC="ccache cc" CXX="ccache c++" && make -j install
+    ./configure && make -j install
     popd
 fi
 
 if [ ! -f  /usr/local/lib/libjpeg.a ]; then
     pushd jpeg
-    ./configure CC="ccache cc" CXX="ccache c++" && make -j install
+    ./configure && make -j install
     popd
 fi
 
 if [ ! -f /usr/local/lib/libqpdf.a ]; then
     pushd qpdf
     if [[ $(uname -p) == 'aarch64' ]]; then
-        ./configure CC="ccache cc" CXX="ccache c++" --disable-oss-fuzz && make install
+        ./configure --disable-oss-fuzz && make install
     else
-        ./configure CC="ccache cc" CXX="ccache c++" --disable-oss-fuzz && make -j install
+        ./configure --disable-oss-fuzz && make -j install
     fi
     find /usr/local/lib -name 'libqpdf.so*' -type f -exec strip --strip-debug {} \+
     popd
 fi
+
+mkdir -p ./build-cache
+tar --create -z -f ./build-cache/usr-local.tgz /usr/local
 
 ldconfig
